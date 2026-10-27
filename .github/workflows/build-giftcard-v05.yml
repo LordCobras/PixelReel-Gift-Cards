@@ -1,0 +1,40 @@
+name: Build PixelReel Gift Cards v0.5 Sidebar Fix
+on:
+  push:
+    paths:
+      - 'development/v05/**'
+      - '.github/workflows/build-giftcard-v05.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build v0.5
+        run: python3 development/v05/build.py
+      - name: Validate package
+        run: |
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from xml.etree import ElementTree as ET
+          p="releases/pixelgift_clean.ocmod.zip"
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              x=z.read("ocmod/pixelgift_clean_sidebar.ocmod.xml")
+              assert ET.fromstring(x).findtext("code") == "pixelgift_clean_sidebar"
+              assert "getModificationByCode('pixelgift_clean_sidebar')" in z.read("admin/controller/module/giftcard.php").decode()
+          PY
+          mkdir -p /tmp/giftphp
+          unzip -o -q releases/pixelgift_clean.ocmod.zip 'admin/*.php' 'admin/*/*.php' 'admin/*/*/*.php' -d /tmp/giftphp || true
+          find /tmp/giftphp -name '*.php' -exec php -l {} \;
+      - name: Commit updated ZIP
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add releases/pixelgift_clean.ocmod.zip
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish v0.5 developer ZIP with corrected OCMOD activation"
+            git push
+          fi
