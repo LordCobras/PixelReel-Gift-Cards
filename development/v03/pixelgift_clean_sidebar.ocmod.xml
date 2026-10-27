@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>PixelReel Gift Cards — Admin Sidebar</name>
+  <code>pixelgift_clean_admin_sidebar_v03</code>
+  <version>0.3.0</version>
+  <author>PixelReel</author>
+  <link>https://github.com/LordCobras/PixelReel-Gift-Cards</link>
+  <file path="admin/controller/common/column_left.php">
+    <operation error="log">
+      <search><![CDATA[// Catalog]]></search>
+      <add position="before"><![CDATA[
+            if ($this->config->get('module_giftcard_status') && $this->user->hasPermission('access', 'extension/pixelgift_clean/module/giftcard')) {
+                $giftcard_link = $this->url->link('extension/pixelgift_clean/module/giftcard', 'user_token=' . $this->session->data['user_token']);
+                $data['menus'][] = [
+                    'id' => 'menu-pixelgift',
+                    'icon' => 'fas fa-gift',
+                    'name' => 'Gift Cards',
+                    'href' => '',
+                    'children' => [
+                        ['name' => 'Overview', 'href' => $giftcard_link, 'children' => []],
+                        ['name' => 'Gift Card Codes', 'href' => $giftcard_link . '#giftcard-cards', 'children' => []],
+                        ['name' => 'Settings', 'href' => $giftcard_link . '#giftcard-settings', 'children' => []]
+                    ]
+                ];
+            }
+
+            ]]></add>
+    </operation>
+  </file>
+</modification>
